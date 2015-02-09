@@ -45,6 +45,13 @@
         [self checkForUpdate];
     }
     
+    NSNotificationCenter * notificationCenter = [NSNotificationCenter defaultCenter];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector(outputReadNotification:)
+                               name:NSFileHandleReadCompletionNotification
+                             object:nil];
+    
     [self performSelectorInBackground:@selector(fetchMachineItems) withObject:nil];
     
 }
@@ -267,7 +274,6 @@
     if ( [self willDisplayRunningMachines] ) {
         
         [self updateStatusItemImage:numberOfRunningMachines];
-        [self performSelectorOnMainThread:@selector(scheduleFetchMachineItems) withObject:nil waitUntilDone:NO];
         
     }
     
@@ -392,13 +398,7 @@
     [environment setValue:askPassPath forKey:@"SUDO_ASKPASS"];
     task.environment = environment;
     
-    NSNotificationCenter * notificationCenter = [NSNotificationCenter defaultCenter];
-    
     NSFileHandle * readOutput = [task.standardOutput fileHandleForReading];
-    [notificationCenter addObserver:self
-                           selector:@selector(outputReadNotification:)
-                               name:NSFileHandleReadCompletionNotification
-                             object:readOutput];
     
     task.terminationHandler = ^(NSTask * task) {
         
@@ -691,9 +691,18 @@
     
     int delay = 120;
     if ( supportsMachineIndex ) {
-        delay = 5;
+        delay = 2;
     }
-    [self performSelector:@selector(fetchMachineItems) withObject:nil afterDelay:delay];
+    
+    scheduleTimer =
+    [NSTimer timerWithTimeInterval:delay
+                            target:self
+                          selector:@selector(fetchMachineItems)
+                          userInfo:nil
+                           repeats:YES];
+    
+    [[NSRunLoop mainRunLoop] addTimer:scheduleTimer
+                              forMode:NSDefaultRunLoopMode];
     
 }
 
@@ -789,6 +798,10 @@
     }
     
     [self updateMenu:machineItems numberOfRunningMachines:numberOfRunningMachines];
+    
+    if ( [self willDisplayRunningMachines] && !scheduleTimer ) {
+        [self scheduleFetchMachineItems];
+    }
     
     return YES;
     

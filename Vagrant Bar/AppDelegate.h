@@ -16,6 +16,7 @@
     NSString * vagrantPath;
     BOOL supportsMachineIndex;
     NSMutableDictionary * machinePaths;
+    NSTimer * scheduleTimer;
 
 }
 
