@@ -17,6 +17,7 @@
     BOOL supportsMachineIndex;
     NSMutableDictionary * machinePaths;
     NSTimer * scheduleTimer;
+    NSData * previousMachineIndexData;
 
 }
 

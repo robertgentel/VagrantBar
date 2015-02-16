@@ -147,15 +147,19 @@
     
 }
 
+- (void) clearMenu {
+    
+    [self.mainMenu removeAllItems];
+    [self.mainMenu addItemWithTitle:@"Fetching machine status.." action:nil keyEquivalent:@""];
+    [self appendCommonMenuItems:self.mainMenu];
+    
+}
+
 - (void) menuWillOpen:(NSMenu *)menu {
     
     if ( menu != self.mainMenu ) {
         return;
     }
-    
-    [menu removeAllItems];
-    [menu addItemWithTitle:@"Fetching machine status.." action:nil keyEquivalent:@""];
-    [self appendCommonMenuItems:menu];
     
     if ( supportsMachineIndex ) {
         [self fetchMachineItems];
@@ -168,7 +172,7 @@
 
 - (void) menuDidClose:(NSMenu *)menu {
     
-    [menu performSelector:@selector(removeAllItems) withObject:nil afterDelay:1];
+    //[menu performSelector:@selector(removeAllItems) withObject:nil afterDelay:1];
     
 }
 
@@ -709,6 +713,7 @@
 - (void) fetchMachineItems {
     
     if ( ![self parseMachineIndex] ) {
+        [self clearMenu];
         [self runGlobalStatus];
     }
     
@@ -730,74 +735,80 @@
         return NO;
     }
     
-    NSDictionary * machineIndex =
-        [NSJSONSerialization JSONObjectWithData:machineIndexData options:0 error:0];
-    if ( !machineIndex ) {
-        return NO;
+    if ( !previousMachineIndexData || ![previousMachineIndexData isEqualToData:machineIndexData] ) {
+        
+        NSDictionary * machineIndex =
+            [NSJSONSerialization JSONObjectWithData:machineIndexData options:0 error:0];
+        if ( !machineIndex ) {
+            return NO;
+        }
+        
+        int machineIndexVersion = [machineIndex[ @"version" ] intValue];
+        if ( machineIndexVersion != 1 ) {
+            return NO;
+        }
+        
+        supportsMachineIndex = YES;
+        
+        NSDictionary * machines = machineIndex[ @"machines" ];
+        NSMutableArray * machineItems = [@[] mutableCopy];
+        int numberOfRunningMachines = 0;
+        
+        [machineIds removeAllObjects];
+        [machinePaths removeAllObjects];
+        
+        for ( NSString * machineId in machines ) {
+            
+            NSDictionary * machineStatus = machines[ machineId ];
+            
+            NSString * title = [NSString stringWithFormat:@"%@ (%@): %@",
+                                machineStatus[ @"name" ],
+                                [machineId substringToIndex:7],
+                                machineStatus[ @"state" ]
+                                ];
+            NSMenuItem * item = [[NSMenuItem alloc] initWithTitle:title action:@selector(machineAction:) keyEquivalent:@""];
+            
+            [self addMachineId:machineId];
+            [self addMachinePath:machineStatus[ @"vagrantfile_path" ] forMachineId:machineId];
+            
+            item.tag = [machineIds count] - 1;
+            item.submenu = [machineSubmenu copy];
+            [self setupMachineSubmenuExtras:item.submenu];
+            
+            BOOL running = [machineStatus[ @"state" ] isEqualToString:@"running"],
+            suspended = [machineStatus[ @"state" ] isEqualToString:@"suspended"] || [machineStatus[ @"state" ] isEqualToString:@"saved"],
+            stopped = [machineStatus[ @"state" ] isEqualToString:@"stopped"] || [machineStatus[ @"state" ] isEqualToString:@"poweroff"];
+            
+            if (running) {
+                [ item setImage: [ NSImage imageNamed:NSImageNameStatusAvailable ] ];
+            }
+            else if (suspended) {
+                [ item setImage: [ NSImage imageNamed:NSImageNameStatusPartiallyAvailable ] ];
+            }
+            else {
+                [ item setImage: [ NSImage imageNamed:NSImageNameStatusUnavailable ] ];
+            }
+            
+            [[item.submenu itemAtIndex:0] setEnabled:!stopped]; // halt
+            [[item.submenu itemAtIndex:1] setEnabled:running]; // provision
+            [[item.submenu itemAtIndex:2] setEnabled:running]; // reload
+            [[item.submenu itemAtIndex:3] setEnabled:suspended]; // resume
+            [[item.submenu itemAtIndex:4] setEnabled:running]; // suspend
+            [[item.submenu itemAtIndex:5] setEnabled:!running]; //up
+            
+            [machineItems addObject:item];
+            
+            if ( running ) {
+                numberOfRunningMachines++;
+            }
+            
+        }
+        
+        [self updateMenu:machineItems numberOfRunningMachines:numberOfRunningMachines];
+        
+        previousMachineIndexData = machineIndexData;
+        
     }
-    
-    int machineIndexVersion = [machineIndex[ @"version" ] intValue];
-    if ( machineIndexVersion != 1 ) {
-        return NO;
-    }
-    
-    supportsMachineIndex = YES;
-    
-    NSDictionary * machines = machineIndex[ @"machines" ];
-    NSMutableArray * machineItems = [@[] mutableCopy];
-    int numberOfRunningMachines = 0;
-    
-    [machineIds removeAllObjects];
-    [machinePaths removeAllObjects];
-    
-    for ( NSString * machineId in machines ) {
-        
-        NSDictionary * machineStatus = machines[ machineId ];
-        
-        NSString * title = [NSString stringWithFormat:@"%@ (%@): %@",
-                            machineStatus[ @"name" ],
-                            [machineId substringToIndex:7],
-                            machineStatus[ @"state" ]
-                            ];
-        NSMenuItem * item = [[NSMenuItem alloc] initWithTitle:title action:@selector(machineAction:) keyEquivalent:@""];
-        
-        [self addMachineId:machineId];
-        [self addMachinePath:machineStatus[ @"vagrantfile_path" ] forMachineId:machineId];
-        
-        item.tag = [machineIds count] - 1;
-        item.submenu = [machineSubmenu copy];
-        [self setupMachineSubmenuExtras:item.submenu];
-        
-        BOOL running = [machineStatus[ @"state" ] isEqualToString:@"running"],
-        suspended = [machineStatus[ @"state" ] isEqualToString:@"suspended"] || [machineStatus[ @"state" ] isEqualToString:@"saved"],
-        stopped = [machineStatus[ @"state" ] isEqualToString:@"stopped"] || [machineStatus[ @"state" ] isEqualToString:@"poweroff"];
-        
-        if (running) {
-            [ item setImage: [ NSImage imageNamed:NSImageNameStatusAvailable ] ];
-        }
-        else if (suspended) {
-            [ item setImage: [ NSImage imageNamed:NSImageNameStatusPartiallyAvailable ] ];
-        }
-        else {
-            [ item setImage: [ NSImage imageNamed:NSImageNameStatusUnavailable ] ];
-        }
-        
-        [[item.submenu itemAtIndex:0] setEnabled:!stopped]; // halt
-        [[item.submenu itemAtIndex:1] setEnabled:running]; // provision
-        [[item.submenu itemAtIndex:2] setEnabled:running]; // reload
-        [[item.submenu itemAtIndex:3] setEnabled:suspended]; // resume
-        [[item.submenu itemAtIndex:4] setEnabled:running]; // suspend
-        [[item.submenu itemAtIndex:5] setEnabled:!running]; //up
-        
-        [machineItems addObject:item];
-        
-        if ( running ) {
-            numberOfRunningMachines++;
-        }
-        
-    }
-    
-    [self updateMenu:machineItems numberOfRunningMachines:numberOfRunningMachines];
     
     if ( [self willDisplayRunningMachines] && !scheduleTimer ) {
         [self scheduleFetchMachineItems];
