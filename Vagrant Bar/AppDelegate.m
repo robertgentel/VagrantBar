@@ -88,9 +88,13 @@
                   fraction:1];
         
         NSString * string = number < 0 ? @"…" : [NSString stringWithFormat:@"%d", number];
+        
+        NSColor * numberColor = [[[NSAppearance currentAppearance] name] hasPrefix:NSAppearanceNameVibrantDark] ?
+        [NSColor whiteColor] : [NSColor blackColor];
+        
         [string drawAtPoint:NSMakePoint( image.size.width + 5, .5 )
            withAttributes:@{
-                            NSForegroundColorAttributeName : [NSColor blackColor],
+                            NSForegroundColorAttributeName : numberColor,
                             NSFontAttributeName : [NSFont systemFontOfSize:13]
                             }];
         
