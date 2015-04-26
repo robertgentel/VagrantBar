@@ -797,7 +797,7 @@
                 [ item setImage: [ NSImage imageNamed:NSImageNameStatusUnavailable ] ];
             }
             
-            [[item.submenu itemAtIndex:0] setEnabled:!stopped]; // halt
+            [[item.submenu itemAtIndex:0] setEnabled:running || suspended]; // halt
             [[item.submenu itemAtIndex:1] setEnabled:running]; // provision
             [[item.submenu itemAtIndex:2] setEnabled:running]; // reload
             [[item.submenu itemAtIndex:3] setEnabled:suspended]; // resume
