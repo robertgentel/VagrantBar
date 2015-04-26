@@ -293,6 +293,8 @@
 
 - (void) machineAction:(id)sender {
     
+    [self machineSSH:sender];
+    
 }
 
 - (void) machineHalt:(id)sender {
@@ -343,10 +345,12 @@
         return nil;
     }
     NSMenuItem * item = sender;
-    if ( !item.parentItem ) {
-        return nil;
+    
+    if ( item.parentItem ) {
+        item = item.parentItem;
     }
-    long index = item.parentItem.tag;
+    
+    long index = item.tag;
     if ( index < 0 || index > [machineIds count] - 1 ) {
         return nil;
     }
