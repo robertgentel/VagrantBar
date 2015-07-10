@@ -209,10 +209,10 @@
     [machinePaths removeAllObjects];
     
     for ( NSDictionary * machineStatus in machineStatuses ) {
-        
+        NSString * idToDisplay = [self willDisplayPath] ? [self getShortenedPath:machineStatus[ @"path" ]] : machineStatus[ @"id" ];
         NSString * title = [NSString stringWithFormat:@"%@ (%@): %@",
                             machineStatus[ @"name" ],
-                            machineStatus[ @"id" ],
+                            idToDisplay,
                             machineStatus[ @"state" ]
                             ];
         NSMenuItem * item = [[NSMenuItem alloc] initWithTitle:title action:@selector(machineAction:) keyEquivalent:@""];
@@ -768,10 +768,12 @@
         for ( NSString * machineId in machines ) {
             
             NSDictionary * machineStatus = machines[ machineId ];
-            
+          
+            NSString * idToDisplay = [self willDisplayPath] ? [self getShortenedPath:machineStatus[ @"vagrantfile_path" ]] : [machineId substringToIndex:7];
+          
             NSString * title = [NSString stringWithFormat:@"%@ (%@): %@",
                                 machineStatus[ @"name" ],
-                                [machineId substringToIndex:7],
+                                idToDisplay,
                                 machineStatus[ @"state" ]
                                 ];
             NSMenuItem * item = [[NSMenuItem alloc] initWithTitle:title action:@selector(machineAction:) keyEquivalent:@""];
@@ -846,6 +848,23 @@
         machinePaths = [@{} mutableCopy];
     }
     [machinePaths setValue:path forKey:machineId];
+}
+
+- (NSString *) getShortenedPath:(NSString *)path {
+    NSArray * splitPath = [path componentsSeparatedByString:@"/"];
+    splitPath = [splitPath subarrayWithRange:NSMakeRange(splitPath.count - 3, 3)];
+    return [NSString stringWithFormat:@"…/%@", [splitPath componentsJoinedByString:@"/"]];
+}
+
+- (BOOL) willDisplayPath {
+  
+    NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
+    NSNumber * displayPath = [defaults valueForKey:@"displayPath"];
+    if ( displayPath && [displayPath boolValue] ) {
+        return YES;
+    }
+    return NO;
+  
 }
 
 @end
