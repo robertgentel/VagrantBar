@@ -14,11 +14,12 @@ Vagrant Bar is a simple wrapper to the Vagrant command line tool to manage machi
 
 ## Download
 
-https://github.com/BipSync/VagrantBar/releases/download/1.18/Vagrant.Bar.zip
+https://github.com/BipSync/VagrantBar/releases/download/1.19/Vagrant.Bar.zip
 
 
 Version History|Notes
 ----|----
+1.19 |  Add ability to display path instead of ID of running machines. Correctly detect OSX Dark Mode at startup and on change. Fixed global status parsing
 1.18 | Click machine name to SSH
 1.17 | Yosemite Black Status Bar support
 1.16 | Further performance improvements
