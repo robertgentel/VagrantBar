@@ -52,6 +52,8 @@
                                name:NSFileHandleReadCompletionNotification
                              object:nil];
     
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(interfaceThemeChangedNotification:) name:@"AppleInterfaceThemeChangedNotification" object:nil];
+    
     [self performSelectorInBackground:@selector(fetchMachineItems) withObject:nil];
     
 }
@@ -89,8 +91,9 @@
         
         NSString * string = number < 0 ? @"…" : [NSString stringWithFormat:@"%d", number];
         
-        NSColor * numberColor = [[[NSAppearance currentAppearance] name] hasPrefix:NSAppearanceNameVibrantDark] ?
-        [NSColor whiteColor] : [NSColor blackColor];
+        NSString * interfaceStyle = [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"];
+        
+        NSColor * numberColor = [interfaceStyle isEqualToString:@"Dark"] ? [NSColor whiteColor] : [NSColor blackColor];
         
         [string drawAtPoint:NSMakePoint( image.size.width + 5, .5 )
            withAttributes:@{
@@ -865,6 +868,13 @@
     }
     return NO;
   
+}
+
+- (void) interfaceThemeChangedNotification:(NSNotification *)notification {
+    
+    previousMachineIndexData = nil;
+    [self performSelectorInBackground:@selector(fetchMachineItems) withObject:nil];
+    
 }
 
 @end
