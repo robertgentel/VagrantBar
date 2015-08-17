@@ -46,7 +46,7 @@ Version History|Notes
 
 ## Configuration
 
-Open a Terminal and run the following commands
+Open a Terminal and run the following commands, then restart Vagrant Bar
 
 Value|Command
 ---|---
