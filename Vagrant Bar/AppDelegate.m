@@ -493,7 +493,7 @@
                 }
             }
             if ( [validTokens count] >= 5 ) {
-                if ( [[tokens objectAtIndex:5] characterAtIndex:0] != '/' ) {
+                if ( [[validTokens objectAtIndex:4] characterAtIndex:0] != '/' ) {
                     continue;
                 }
                 NSArray *paths = [validTokens subarrayWithRange:NSMakeRange(4, [validTokens count] - 4)];
