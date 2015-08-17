@@ -46,6 +46,8 @@ Version History|Notes
 
 ## Configuration
 
+Open a Terminal and run the following commands
+
 Value|Command
 ---|---
 Mono status bar icon|`defaults write bipsync.Vagrant-Bar monoIcon -bool true`
