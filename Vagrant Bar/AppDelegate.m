@@ -789,8 +789,8 @@
             [self setupMachineSubmenuExtras:item.submenu];
             
             BOOL running = [machineStatus[ @"state" ] isEqualToString:@"running"],
-            suspended = [machineStatus[ @"state" ] isEqualToString:@"suspended"] || [machineStatus[ @"state" ] isEqualToString:@"saved"],
-            stopped = [machineStatus[ @"state" ] isEqualToString:@"stopped"] || [machineStatus[ @"state" ] isEqualToString:@"poweroff"];
+            suspended = [machineStatus[ @"state" ] isEqualToString:@"suspended"] || [machineStatus[ @"state" ] isEqualToString:@"saved"];
+            //stopped = [machineStatus[ @"state" ] isEqualToString:@"stopped"] || [machineStatus[ @"state" ] isEqualToString:@"poweroff"];
             
             if (running) {
                 [ item setImage: [ NSImage imageNamed:NSImageNameStatusAvailable ] ];
