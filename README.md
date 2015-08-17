@@ -42,7 +42,7 @@ Version History|Notes
 ## Installation
 1. Copy "Vagrant Bar.app" to /Applications
 2. Run from there
-3. Optionally drag into "Login Items" under "System Preferences"/"Users & Groups"
+3. Optionally drag into "Login Items" under "System Preferences"/"Users & Groups" to autostart on login
 
 ## Configuration
 
