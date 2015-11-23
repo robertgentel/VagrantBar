@@ -525,16 +525,40 @@
     task.standardOutput = [NSPipe pipe];
     [task launch];
     
+    BOOL foundVagrantBinary = NO;
+    
+    NSString * path;
     NSFileHandle * output = [task.standardOutput fileHandleForReading];
     NSData * data = [output readDataToEndOfFile];
     if ( ![data length] ) {
-        return NO;
+        foundVagrantBinary = NO;
+    } else {
+        foundVagrantBinary = YES;
+        path = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     }
-    NSString * string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     
-    vagrantPath = [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    // If `which vagrant` does work in bash try some hardcoded paths
+    // - bash might not have the correct $PATH setup, if your default shell is
+    //   zsh or fish.
+    if ( !foundVagrantBinary ) {
+        NSArray* standard_paths = @[
+            @"/usr/bin/vagrant",        // default installation
+            @"/usr/local/bin/vagrant",  // Homebrew installation
+            @"/opt/local/bin/vagrant"   // other possible installation site (MacPorts)
+        ];
+
+        for (id bin_path in standard_paths) {
+            if ([[NSFileManager defaultManager] isExecutableFileAtPath: bin_path] == YES) {
+                foundVagrantBinary = YES;
+                path = bin_path;
+                break;
+            }
+        }
+    }
     
-    return YES;
+    vagrantPath = [path stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    
+    return foundVagrantBinary;
     
 }
 
