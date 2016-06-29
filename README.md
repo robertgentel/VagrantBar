@@ -1,3 +1,9 @@
+# Unsupported
+
+### *** ### I'm no longer using/maintaining this project ### ***
+
+---
+
 # Vagrant Bar
 
 ## Overview
